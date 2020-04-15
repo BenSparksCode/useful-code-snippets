@@ -87,7 +87,84 @@ firebase
 
 
 
-AUTHENTICATION
+AUTHENTICATION (WITH EMAIL AND PASSWORD)
 
 
-Coming Soon...
+
+
+BOILERPLATE
+
+const firebase = require('firebase')
+
+class Firebase {
+    constructor() {
+        // Initialize Firebase
+        firebase.initializeApp(config);
+        firebase.analytics();
+
+        this.auth = firebase.auth()
+        this.db = firebase.firestore()
+    }
+
+
+
+LOG IN, LOG OUT, SIGN UP
+
+    login(email, password) {
+        return this.auth.signInWithEmailAndPassword(email, password)
+    }
+
+    logout() {
+        return this.auth.signOut()
+    }
+
+    async register(name, email, password){
+        await this.auth.createUserWithEmailAndPassword(email, password)
+        return this.auth.currentUser.updateProfile({
+            displayName: name
+        })
+    }
+
+
+
+ADDING DATA TO DATABASE ASSOCIATED TO USER
+
+    addQuote(quote) {
+        if(!this.auth.currentUser){
+            return alert("Not authorized!")
+        }
+        
+        return this.db.doc(`users_codedamn_video/${this.auth.currentUser.uid}`).set({
+            quote
+        })
+    }
+
+
+
+CHECK IF FIREBASE INITIALIZED AND THEN SHOW LOG IN SCREEN
+
+    isInitialized() {
+        return new Promise(resolve => {
+            this.auth.onAuthStateChanged(resolve)
+        })
+    }
+
+
+
+CHECK IF USER LOGGED IN OR NOT
+
+    getCurrentUsername() { 
+        return this.auth.currentUser && this.auth.currentUser.displayName
+    }
+
+
+
+GET DATA FROM DB ASSOCIATED TO SIGNED IN USER
+
+    async getCurrentUserQuote() {
+        const quote = await this.db.doc(`users_codedamn_video/${this.auth.currentUser.uid}`).get()
+
+        return quote.get('quote')
+    }
+
+}
